@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BD Final Prep · Sistemas Transaccionales y BD</title>
+<meta name="description" content="Preparación para el examen final: quizzes, exámenes, casos con diagramas de Chen y pata de gallo, SQL y normalización.">
+<link rel="stylesheet" href="css/styles.css"></head>
+<body>
+<header><div class="in"><span class="logo">BD Final Prep</span><nav id="nav"></nav></div></header>
+<main id="app"></main>
+<script>
+document.getElementById('nav').innerHTML=[['#/','Inicio'],['#/teoria','Teoría'],['#/quiz','Quizzes'],['#/examenes','Exámenes'],['#/casos','Casos'],['#/labs','Labs SQL'],['#/repaso','Hoja de repaso']].map(function(a){return '<a href="'+a[0]+'">'+a[1]+'</a>'}).join('');
+</script>
+<script src="js/erd.js"></script>
+<script src="js/data/cases.js"></script>
+<script src="js/data/sqllabs.js"></script>
+<script src="js/data/theory.js"></script>
+<script src="js/data/questions.js"></script>
+<script src="js/data/exams.js"></script>
+<script src="js/app.js"></script>
+</body></html>
