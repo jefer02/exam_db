@@ -12,6 +12,8 @@
   let store = { topics: {}, wrong: [], exams: [] };
   try { const s = JSON.parse(localStorage.getItem('bdfp') || 'null'); if (s) store = Object.assign(store, s); } catch (e) {}
   const save = () => { try { localStorage.setItem('bdfp', JSON.stringify(store)); } catch (e) {} };
+  let saveTimer = null;
+  const saveSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); };
   function record(q, ok) {
     const t = store.topics[q.t] || (store.topics[q.t] = { ok: 0, total: 0 });
     t.total++; if (ok) t.ok++;
@@ -40,7 +42,7 @@
     const v = caseViews(c);
     const tabs = [['chen', 'Chen (E/R)', `<div class="svgwrap">${v.chen}</div>`],
       ['crow', 'Pata de gallo', `<div class="svgwrap">${v.crow}</div>`],
-      ['rel', 'Modelo relacional', `<pre>${esc(v.rel)}</pre>`],
+      ['rel', 'Modelo relacional', `<div class="relschema">${v.rel.map((l) => `<div>${l}</div>`).join('')}</div>`],
       ['sql', 'SQL (DDL)', `<pre>${esc(v.sql)}</pre>`]];
     return `<div class="tabs" data-tabs="${id}">
       <div class="tabbar">${tabs.map((t, i) => `<button class="tab${i ? '' : ' on'}" data-act="tab" data-g="${id}" data-k="${t[0]}">${t[1]}</button>`).join('')}</div>
@@ -53,10 +55,12 @@
   const nav = [['#/', 'Inicio'], ['#/teoria', 'Teoría'], ['#/quiz', 'Quizzes'], ['#/examenes', 'Exámenes'], ['#/casos', 'Casos'], ['#/labs', 'Labs SQL'], ['#/repaso', 'Hoja de repaso']];
   function page(route, body) {
     app.innerHTML = body;
-    document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.getAttribute('href') === route));
+    if (window.SHELL) SHELL.refresh();
     window.scrollTo(0, 0);
   }
   const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+  // API para las vistas de js/views/*.js (registradas en window.VIEWS[ruta]).
+  window.APP = { page, esc, store, save, saveSoon };
 
   /* ---------- Inicio ---------- */
   function home() {
@@ -65,6 +69,9 @@
 <section class="hero"><h1>Prepárate para el examen final</h1>
 <p>Sistemas Transaccionales y BD · Momento 3 (70 %) · examen a mano: selección múltiple, preguntas abiertas, diagramas de pata de gallo y código SQL.</p></section>
 <div class="steps">
+ <a class="card step hl" href="#/aprende"><b>▶ Empieza aquí</b><span>Ruta de aprendizaje: ${MODULES.length} temas de cero a examen</span></a>
+ <a class="card step hl" href="#/joins"><b>★ JOINs</b><span>El tema con más peso: visual, fila por fila</span></a>
+ <a class="card step hl" href="#/sql"><b>★ Editor SQL</b><span>${SQL_EXERCISES.LIST.length} ejercicios que se califican solos</span></a>
  <a class="card step" href="#/teoria"><b>1 · Repasa</b><span>Resumen por temas</span></a>
  <a class="card step" href="#/quiz"><b>2 · Quizzes</b><span>${BANK.length} preguntas con explicación</span></a>
  <a class="card step" href="#/casos"><b>3 · Practica diseño</b><span>${CASES.length} casos: Chen, pata de gallo, SQL</span></a>
@@ -77,7 +84,7 @@ ${Object.keys(TOPICS).map((k) => { const t = store.topics[k] || { ok: 0, total: 
 ${store.exams.length ? `<h3>Exámenes</h3><ul>${store.exams.slice(-5).reverse().map((e) => `<li>${esc(e.title)} · ${e.ok}/${e.total} (${pct(e.ok, e.total)} %) · ${esc(e.date)}</li>`).join('')}</ul>` : ''}
 </div>
 <h2>Plan sugerido</h2>
-<ol class="plan"><li>Lee la teoría de un tema y haz su quiz hasta sacar más de 85 %.</li><li>Repite “Repasar falladas”.</li><li>Haz cada caso: primero en papel (Chen → pata de gallo → SQL), luego compara con la solución.</li><li>Resuelve los labs sin mirar la solución.</li><li>Termina con los Exámenes 1, 2 y 3 en modo hoja, con tiempo.</li></ol>
+<ol class="plan"><li>Sigue la <a href="#/aprende">ruta de aprendizaje</a> en orden: lee cada tema, ejecuta sus ejemplos y haz su mini-quiz.</li><li>Después de cada tema de SQL, resuelve sus ejercicios en el <a href="#/sql">Editor SQL</a>.</li><li>Haz el quiz del banco de cada tema hasta sacar más de 85 %.</li><li>Repite “Repasar falladas”.</li><li>Haz cada caso: primero en papel (Chen → pata de gallo → SQL), luego compara con la solución.</li><li>Resuelve los labs sin mirar la solución.</li><li>Termina con los Exámenes 1, 2 y 3 en modo hoja, con tiempo.</li></ol>
 <p class="small">Material basado en el contenido del curso. Los casos marcados “Práctica extra” y varias preguntas son material de práctica creado por mí; no son del profesor.</p>`);
   }
 
@@ -318,6 +325,7 @@ ${Object.keys(byT).map((k) => `<div class="bar"><span>${esc(TOPICS[k])}</span><i
       else if (a === 'examenes') examsList();
       else if (a === 'examen') examView(b);
       else if (a === 'repaso') cheat();
+      else if (window.VIEWS && VIEWS[a]) VIEWS[a](b, c, p[4]);
       else home();
     } catch (e) { app.innerHTML = '<div class="card bad">Error: ' + esc(e.message) + '</div>'; console.error(e); }
   }

@@ -1,0 +1,12 @@
+{
+  "name": "bd-final-prep",
+  "private": true,
+  "description": "Sitio estático de estudio. Las dependencias solo se usan para tools/verify.js; el sitio no necesita build.",
+  "type": "commonjs",
+  "scripts": {
+    "verify": "node tools/verify.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.13"
+  }
+}
